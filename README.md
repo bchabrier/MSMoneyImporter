@@ -13,7 +13,7 @@ C:\MSMoneyImporter> msmoneyimporter.bat
 # Installation
 
 # Prerequisites
-`MSMoneyImporter` uses Boobank, which in turn require Python 2.
+`MSMoneyImporter` uses [Boobank](http://weboob.org/applications/boobank), which in turn require [Python 2](https://www.python.org/downloads/).
 
 # Supported versions of Microsoft Money
 `MSMoneyImporter` has been tested with Microsoft Money 2005.
