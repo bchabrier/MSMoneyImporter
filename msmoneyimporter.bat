@@ -174,6 +174,16 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
                     echo.!line!
                 )
                 if "!line!"=="</STMTTRN>" (
+                    : MSMoney expects CHECKNUM instead of NAME for CHECK transactions
+                    if "!field_TRNTYPE!"=="CHECK" (
+                        call :isNumeric !field_NAME!
+                        if !ERRORLEVEL!==0 (
+                            set fields=!fields:NAME=CHECKNUM!
+                            set field_CHECKNUM=!field_NAME!
+                            set field_NAME=
+                        )
+                    )
+
                     : go through specific backend process if any
                     if exist !backendHandler! (
                         : apply the transformations, in the form
@@ -290,3 +300,13 @@ set "psCommand=powershell -Command "$pword = read-host 'Enter Password' -AsSecur
 for /f "usebackq delims=" %%p in (`%psCommand%`) do set password=%%p
 
 goto:EOF
+
+:isNumeric
+: - checks if parameter is numeric
+: - return code:  
+:   1 if not numeric
+:   0 if numeric
+set i=%*
+set /A n=1%i% 2>NUL
+if "%n%"=="1%i%" exit /B 0
+exit /B 1
