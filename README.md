@@ -8,6 +8,27 @@ With Microsoft Money sunset, automated download of bank account history was no m
 # Usage
 ```batch
 C:\MSMoneyImporter> msmoneyimporter.bat
+Getting the list of bank accounts from boobank...
+                                Account                     Balance    Coming
+---------------------------------------------------------+----------+----------
+             00235648765@cragr CCHQ                         453.43
+             04687951322@cragr LDD                           65.21
+             64971342165@cragr CEL                          308.99
+1345679513298655@societegenerale Livret                       114.38
+---------------------------------------------------------+----------+----------
+                                             Total (EUR)    942.01       0.00
+-------------------
+Account 00235648765@cragr (CCHQ)
+Creating backup of comptabilité.mny...
+Importing C:\Users\bruno\Downloads\CCHQ_00235648765@cragr.ofx into Money (2 transaction(s))...
+-------------------
+Account 04687951322@cragr (LDD)
+Importing C:\Users\bruno\Downloads\LDD_04687951322@cragr.ofx into Money (1 transaction(s))...
+-------------------
+Account 64971342165@societegenerale (Livret)
+Importing C:\Users\bruno\Downloads\Livret_64971342165@societegenerale.ofx into Money (4 transaction(s))...
+
+C:\MSMoneyImporter>
 ```
 
 # Installation
