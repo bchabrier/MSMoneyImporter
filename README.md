@@ -32,7 +32,7 @@ C:\MSMoneyImporter>
 ```
 
 # Installation
-`MSMoneyImporter` requires [Boobank](http://weboob.org/applications/boobank), which in turn require [Python](https://www.python.org/downloads/). 
+`MSMoneyImporter` requires [Boobank](http://weboob.org/applications/boobank), which in turn requires [Python](https://www.python.org/downloads/). 
 
 ## Python
 The current stable version of [Boobank](http://weboob.org/applications/boobank) runs on Python 2.7. Download and install Python 2.7 from this [link](https://www.python.org/downloads/).
@@ -42,7 +42,7 @@ The current stable version of [Boobank](http://weboob.org/applications/boobank) 
 
 
 # Prerequisites
-`MSMoneyImporter` uses [Boobank](http://weboob.org/applications/boobank), which in turn require [Python](https://www.python.org/downloads/).
+`MSMoneyImporter` uses [Boobank](http://weboob.org/applications/boobank), which in turn requires [Python](https://www.python.org/downloads/).
 
 # Supported versions of Microsoft Money
 `MSMoneyImporter` has been tested with Microsoft Money 2005.
