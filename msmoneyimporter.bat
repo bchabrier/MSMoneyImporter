@@ -20,6 +20,8 @@ set localfile=%~nx0
 set localdir=%~dp0
 set datesFile=%~dpn0.last
 
+set backupDone=0
+
 set force=0
 set keep=0
 set clearcache=0
@@ -243,6 +245,7 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
             set status=0
         ) else (
             if !noimport!==0 (
+                call :doBackupIfNeeded
                 <nul set /p =Importing !ofxfile! into Money (!nbTransactions! transaction(s^)^)...
                 "%moneyPath%mnyimprt.exe" !ofxfile!
                 set status=!errorlevel!
@@ -310,3 +313,23 @@ set i=%*
 set /A n=1%i% 2>NUL
 if "%n%"=="1%i%" exit /B 0
 exit /B 1
+
+:doBackupIfNeeded
+: does a backup if not done
+if %backupDone%==1 exit /B
+
+SETLOCAL
+rem Find moneyFile path
+rem
+for /f "tokens=2,*" %%a in ('reg query HKEY_CURRENT_USER\Software\Microsoft\Money\14.0 /v CurrentFile') do (
+    set moneyfile=%%~dpnb
+)
+
+echo Creating backup of %moneyfile%.mny...
+set target=%moneyfile%_%DATE:/=_%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.mny
+copy "%moneyfile%.mny" "%target%" | find /V " 1 "
+
+ENDLOCAL
+
+set backupDone=1
+exit /B
