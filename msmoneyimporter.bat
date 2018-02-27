@@ -82,6 +82,14 @@ for /f "tokens=1,* delims=)" %%a in ('reg query HKEY_CLASSES_ROOT\money\Shell\Op
     )
 )
 
+
+call :setDownloadPath downloads
+
+call :checkInstallation
+if not !ERRORLEVEL!==0 exit /B
+
+call :getPythonPath
+
 rem last download dates file
 if not exist %datesFile% (
     echo Id              Minimum date            Last download date >%datesFile%
@@ -98,7 +106,7 @@ if "%theAccount%"=="" (
     if !doGetList!==1 (
         echo Getting the list of bank accounts from boobank...
         call :requestPwd
-        python C:\Python27\Scripts\boobank list > %temp%\accounts.list
+        %python% %pythonPath%Scripts\boobank list > %temp%\accounts.list
         if %debug%==1 copy %temp%\accounts.list %temp%\accounts.list.from_boobank >NUL
     ) else (
          echo Using previously retrieved list of bank accounts...   
@@ -158,7 +166,7 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
                     set prevdate=!mindate! 
                 ) else set prevdate=!lastdate!
                 call :requestPwd
-                set retrieveCmd=python c:\Python27\scripts\boobank history !account! !prevdate! -f ofx
+                set retrieveCmd=%python% %pythonPath%Scripts\boobank history !account! !prevdate! -f ofx
                 if %debug%==1 set retrieveCmd=!retrieveCmd! ^> "!ofxfile!.from_boobank" ^& type "!ofxfile!.from_boobank"
             ) else (
                 set retrieveCmd=type "!ofxfile!.from_boobank"
@@ -309,27 +317,172 @@ goto:EOF
 : - return code:  
 :   1 if not numeric
 :   0 if numeric
-set i=%*
-set /A n=1%i% 2>NUL
-if "%n%"=="1%i%" exit /B 0
+    set i=%*
+    set /A n=1%i% 2>NUL
+    if "%n%"=="1%i%" exit /B 0
 exit /B 1
 
 :doBackupIfNeeded
 : does a backup if not done
-if %backupDone%==1 exit /B
+    if %backupDone%==1 exit /B
 
-SETLOCAL
-rem Find moneyFile path
+    SETLOCAL
+    rem Find moneyFile path
+    rem
+    for /f "tokens=2,*" %%a in ('reg query HKEY_CURRENT_USER\Software\Microsoft\Money\14.0 /v CurrentFile') do (
+        set moneyfile=%%~dpnb
+    )
+
+    echo Creating backup of %moneyfile%.mny...
+    set target=%moneyfile%_%DATE:/=_%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.mny
+    copy "%moneyfile%.mny" "%target%" | find /V " 1 "
+
+    ENDLOCAL
+
+    set backupDone=1
+exit /B
+
+:checkInstallation
+: checks the installation
+: - set errorlevel to 0 if everything is OK
+    SETLOCAL
+    :checkpythonagain
+    call :getPythonPath
+    set status=0
+    call :checkCommandReturns "%python% -V" "Python 2.7" status
+    if not !status!==0 (
+        set resp=y
+        set /P resp=Could not find Python 2.7. Would you like to install it? [y] 
+        set resp=!resp:Y=!
+        set reso=!resp:y=!
+        if "!resp!"=="" (
+            set msi=python-2.7.14.msi
+            set /P =Downloading python... <NUL
+            cd /D %downloads% & powershell -Command "Invoke-WebRequest https://www.python.org/ftp/python/2.7.14/!msi! -OutFile !msi!"
+            echo.
+            cd /D %~dp0
+            set /P =Installing python... <NUL  
+            call %downloads%/!msi!
+            echo.
+            : check that the installation went fine
+            goto :checkpythonagain
+        ) else (
+            echo Aborting...
+            exit /B !status!
+        )
+    )
+
+
+    : install additional packages needed for boobank
+    :checkboobankagain
+    set status=0
+    call :checkCommandReturns "%python% %pythonPath%Scripts\boobank --version" "boobank" status
+    if not !status!==0 (
+        if not exist "%pythonPath%Scripts\boobank" (      
+            set resp=y
+            set /P resp=Could not find boobank. Would you like to install it? [y] 
+            set resp=!resp:Y=!
+            set reso=!resp:y=!
+            if "!resp!"=="" (
+                set /P =Downloading weboob... <NUL
+                cd /D %downloads%
+                powershell -Command "Invoke-WebRequest https://git.weboob.org/weboob/stable/repository/archive.zip?ref=master -OutFile weboob.zip"
+                echo.
+                set /P =Unzipping weboob.zip... <NUL
+                powershell.exe -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('weboob.zip', 'weboob'); }"            
+                echo.
+                set /P =Installing weboob in<NUL  
+                cd weboob 
+                for /D %%a in (*.*) do set masterdir=%%a
+                echo.!masterdir!
+                cd !masterdir!
+                %python% .\setup.py install
+                cd /D %~dp0
+                : check that the installation went fine
+                set status=0
+                if not exist "%pythonPath%Scripts\boobank" (
+                        set status=1
+                        echo Installation failed. You might need to rerun in an elevated mode ^(run as administrator^).
+                        echo Aborting...
+                        exit /B
+                )
+            )
+        ) else (
+            : boobank exists, but doesn't work. maybe missing packages
+            set resp=y
+            set /P resp=Some packages might be missing. Would you like to install them? [y] 
+            set resp=!resp:Y=!
+            set reso=!resp:y=!
+            if "!resp!"=="" (
+                %python% -m pip install --upgrade pip
+                %pythonPath%Scripts\pip install lxml html5lib certifi urllib3 idna chardet prettytable unidecode
+                : check that the installation went fine
+                goto :checkboobankagain
+            ) else (
+                echo Aborting...
+                exit /B
+            )
+        ) 
+            
+        : check backend installation
+        set status=0
+        call :requestPwd
+        call :checkCommandReturns "%python% %pythonPath%Scripts\boobank backends" "Enabled" status
+        if not !status!==0 (
+            echo No backend installed. Please install some, running the following command:
+            echo %python% %pythonPath%Scripts\boobank
+            exit /B !status!
+        )
+
+
+    )
+  
+    ENDLOCAL
+exit /B !status!
+
+:checkCommandReturns
+: check the result of a command
+: - command to be run
+: - string to be found in the result
+: - variable to set the status (1 if fail, untouched if success)
+    SETLOCAL
+    set comm=%~1
+    set str=%~2
+    for /F "tokens=*" %%a in ('%comm% 2^>^&1 ^<NUL') do (
+        set res=%%a
+
+        call set subst=%%res:!str!=%%
+        if "!subst!"=="!res!" (
+            echo Command "%comm%" returned "!res!", was expecting "!str!".
+            ENDLOCAL 
+            set "%~3=1"
+        ) else ENDLOCAL
+        exit /B
+    )
+exit /B
+
+: getPythonPath
+rem Find Python path
 rem
-for /f "tokens=2,*" %%a in ('reg query HKEY_CURRENT_USER\Software\Microsoft\Money\14.0 /v CurrentFile') do (
-    set moneyfile=%%~dpnb
+rem trouve la parenthese dans: (par d�faut)   REG_SZ    D:\Program Files\Microsoft Money 2005\MNYCoreFiles\MSMoney.exe -url:%1
+rem                                       |<----- %%a ----
+    set python=python.exe
+    for /f "tokens=1,* delims=)" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Python.exe" /ve') do (
+        set l=%%b
+        rem trouve la fin dans:   REG_SZ    D:\Program Files\Microsoft Money 2005\MNYCoreFiles\MSMoney.exe -url:%1
+        rem                                |<----- %%b ----
+        for /f "tokens=1,* delims= " %%a in ('echo.!l!') do (
+            set python=%%b
+            set pythonPath=%%~dpb
+        )
+    )
+exit /B
+
+set downloads=C:\Users\Bruno\Downloads\
+:setDownloadPath
+rem Find local Downloads path
+for /f "tokens=2,* delims= " %%a in ('reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "{374DE290-123F-4565-9164-39C4925E467B}"') do (
+        set "%~1=%%b"
+    )
 )
-
-echo Creating backup of %moneyfile%.mny...
-set target=%moneyfile%_%DATE:/=_%_%TIME:~0,2%%TIME:~3,2%%TIME:~6,2%.mny
-copy "%moneyfile%.mny" "%target%" | find /V " 1 "
-
-ENDLOCAL
-
-set backupDone=1
 exit /B
