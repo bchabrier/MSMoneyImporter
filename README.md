@@ -34,6 +34,13 @@ C:\MSMoneyImporter>
 # Installation
 `MSMoneyImporter` requires [Boobank](http://weboob.org/applications/boobank), which in turn requires [Python](https://www.python.org/downloads/). 
 
+`MSMoneyImporter` automatically checks that the dependencies are correctly installed, and if not, propose to do the installation. Note that you might have to run `MSMoneyImporter` in elevated mode (i.e. from a command prompt run as administrator).
+
+You can as well do the installation manually as described below. However, the steps to install boobank are not straightforward, so I recommend to let `MSMoneyImporter` do it for you.
+
+Once all dependencies installed, it is necessary to configure the backends by running boobank.
+
+
 ## Python
 The current stable version of [Boobank](http://weboob.org/applications/boobank) runs on Python 2.7. Download and install Python 2.7 from this [link](https://www.python.org/downloads/).
 
