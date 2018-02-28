@@ -177,6 +177,7 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
                 if "!line!"=="<STMTTRN>" set inTransaction=1
                 if !inTransaction!==0 (
                     : MSMoney does not support some account types
+                    if "!line!"=="<ACCTTYPE>" set line=^<ACCTTYPE^>CHECKING
                     if "!line!"=="<ACCTTYPE>CARD" set line=^<ACCTTYPE^>CHECKING
                     if "!line!"=="<ACCTTYPE>LOAN" set line=^<ACCTTYPE^>CHECKING
                     if "!line!"=="<ACCTTYPE>MARKET" set line=^<ACCTTYPE^>CHECKING
