@@ -270,7 +270,7 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
             findstr /V /B /C:!account! %datesFile% > %TEMP%list.new
             if "!mindate!"=="" set mindate=null
             echo !account!       !mindate!             !today! >>%TEMP%list.new
-            copy /Y %TEMP%list.new %datesFile% >NUL
+            if !noimport!==0 copy /Y %TEMP%list.new %datesFile% >NUL
             del %TEMP%list.new
         )
 
