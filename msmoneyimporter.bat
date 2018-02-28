@@ -391,6 +391,7 @@ exit /B
                 rem powershell -Command "Invoke-WebRequest https://git.weboob.org/weboob/stable/repository/archive.zip?ref=master -OutFile weboob.zip"
                 echo.
                 set /P =Unzipping weboob.zip... <NUL
+                rd /S /Q weboob
                 powershell.exe -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('weboob.zip', 'weboob'); }"            
                 echo.
                 set /P =Installing weboob in<NUL  
@@ -425,6 +426,8 @@ exit /B
                 exit /B
             )
         ) 
+
+        %python% %pythonPath%Scripts\weboob-config update
             
         : check backend installation
         set status=0
@@ -480,11 +483,10 @@ rem                                       |<----- %%a ----
     )
 exit /B
 
-set downloads=C:\Users\Bruno\Downloads\
 :setDownloadPath
 rem Find local Downloads path
 for /f "tokens=2,* delims= " %%a in ('reg query "HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" /v "{374DE290-123F-4565-9164-39C4925E467B}"') do (
-        set "%~1=%%b"
+        call set "%~1=%%b"
     )
 )
 exit /B
