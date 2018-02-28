@@ -387,7 +387,8 @@ exit /B
             if "!resp!"=="" (
                 set /P =Downloading weboob... <NUL
                 cd /D %downloads%
-                powershell -Command "Invoke-WebRequest https://git.weboob.org/weboob/stable/repository/archive.zip?ref=master -OutFile weboob.zip"
+                powershell -Command "Invoke-WebRequest https://git.weboob.org/weboob/devel/repository/archive.zip?ref=master -OutFile weboob.zip"
+                rem powershell -Command "Invoke-WebRequest https://git.weboob.org/weboob/stable/repository/archive.zip?ref=master -OutFile weboob.zip"
                 echo.
                 set /P =Unzipping weboob.zip... <NUL
                 powershell.exe -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('weboob.zip', 'weboob'); }"            
