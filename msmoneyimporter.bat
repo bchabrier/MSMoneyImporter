@@ -377,7 +377,7 @@ exit /B
     : install additional packages needed for boobank
     :checkboobankagain
     set status=0
-    call :checkCommandReturns "%python% %pythonPath%Scripts\boobank --version" "boobank" status
+    call :checkCommandReturns "%python% %pythonPath%Scripts\boobank --version" "boobank v" status
     if not !status!==0 (
         if not exist "%pythonPath%Scripts\boobank" (      
             set resp=y
