@@ -391,7 +391,7 @@ exit /B
                 rem powershell -Command "Invoke-WebRequest https://git.weboob.org/weboob/stable/repository/archive.zip?ref=master -OutFile weboob.zip"
                 echo.
                 set /P =Unzipping weboob.zip... <NUL
-                rd /S /Q weboob
+                if exist weboob rd /S /Q weboob
                 powershell.exe -nologo -noprofile -command "& { Add-Type -A 'System.IO.Compression.FileSystem'; [IO.Compression.ZipFile]::ExtractToDirectory('weboob.zip', 'weboob'); }"            
                 echo.
                 set /P =Installing weboob in<NUL  
