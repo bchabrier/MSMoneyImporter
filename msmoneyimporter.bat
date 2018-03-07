@@ -150,6 +150,8 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
     echo Account !account! !theLabel!
     set ofxfile=C:\Users\bruno\Downloads\!label!_!account!.ofx
     set ofxfile=!ofxfile:/=_!
+    Call :Replace ofxfile "*" "_"
+    set ofxfile=!ofxfile: =_!
     if "!diff:~0,1!"=="-" (
 
         set backend=!account:*@=!
@@ -490,3 +492,20 @@ for /f "tokens=2,* delims= " %%a in ('reg query "HKEY_CURRENT_USER\Software\Micr
     )
 )
 exit /B
+
+:Replace
+  SetLocal ENABLEEXTENSIONS ENABLEDELAYEDEXPANSION
+  Set "old=!%~1!"
+  Set "new="
+  REM The Tom Lavedas String Length Maneuver (TLSLM)
+  For /F "delims=:" %%a in (
+    '(Echo."!%~1!"^& Echo.^)^|FindStr /O .') Do Set /A "$=%%a-6"
+  For /L %%i in (0,1,%$%) Do (
+    If "!old:~%%i,1!" EQU "%~2" (
+      Set "new=!new!%~3"
+    ) Else (
+      Set "new=!new!!old:~%%i,1!"
+    )
+  )
+  EndLocal & Set "%~1=%new%"
+  Goto :EOF
