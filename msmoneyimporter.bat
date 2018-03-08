@@ -213,6 +213,13 @@ for /f "tokens=1,*" %%a in ('type %temp%\accounts.list ^| find "@"') do (
                         )
                     )
                     echo.^<STMTTRN^>
+                    if not !field_DTUSER!==!field_DTPOSTED! (
+                        : the payment date is a deferred payment
+                        : MSMoney takes DTPOSTED, which is the payment date
+                        : I prefer to have the date the operation, so I set DTPOSTED
+                        : as DTUSER
+                        set field_DTPOSTED=!field_DTUSER!
+                    )
                     for %%F in (!fields!) do (
                         set field=%%F
                         call set value=%%field_!field!%%
