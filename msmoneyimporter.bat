@@ -314,7 +314,8 @@ GOTO:EOF
 
 :requestPwd
 if not "%password%"=="" goto:EOF
-
+if "%passwordRequested%"=="1" goto:EOF
+set passwordRequested=1
 set "psCommand=powershell -Command "$pword = read-host 'Enter Password' -AsSecureString ; ^
     $BSTR=[System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($pword); ^
         [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)""
